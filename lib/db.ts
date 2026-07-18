@@ -12,6 +12,7 @@ declare global {
 function open(): Database.Database {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const db = new Database(DB_PATH);
+  db.pragma("busy_timeout = 5000");
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   const schema = fs.readFileSync(path.join(process.cwd(), "lib", "schema.sql"), "utf8");
@@ -19,8 +20,16 @@ function open(): Database.Database {
   return db;
 }
 
-// Singleton survives Next.js dev hot-reload.
-export const db: Database.Database = (globalThis.__vcbrainDb ??= open());
+// Lazy singleton: opens on first query, not at module import (parallel Next.js
+// build workers import this module and would otherwise race on the schema
+// write), and survives dev hot-reload via globalThis.
+export const db: Database.Database = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    const real = (globalThis.__vcbrainDb ??= open());
+    const value = real[prop as keyof Database.Database];
+    return typeof value === "function" ? (value as (...args: unknown[]) => unknown).bind(real) : value;
+  },
+});
 
 export function json<T>(value: string | null | undefined, fallback: T): T {
   if (!value) return fallback;
