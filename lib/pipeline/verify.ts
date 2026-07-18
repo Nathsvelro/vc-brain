@@ -49,7 +49,9 @@ export async function verifyClaims(opp: OpportunityRow): Promise<{ verified: num
   );
 
   const validClaim = new Set(claims.map((c) => c.id));
-  const validEvidence = new Set(evidence.map((e) => e.id));
+  // Only web/github rows count as support/contradiction — the deck cannot
+  // corroborate itself, and hallucinated ids must not survive.
+  const externalIds = new Set(external.map((e) => e.id));
   const update = db.prepare(
     "UPDATE claims SET status=?, trust_score=?, evidence_ids_json=?, verification_note=? WHERE id=?",
   );
@@ -59,14 +61,23 @@ export async function verifyClaims(opp: OpportunityRow): Promise<{ verified: num
   const tx = db.transaction(() => {
     for (const v of out.verdicts) {
       if (!validClaim.has(v.claim_id)) continue;
-      const support = v.supporting_evidence_ids.filter((id) => validEvidence.has(id));
-      const contra = v.contradicting_evidence_ids.filter((id) => validEvidence.has(id));
+      const support = v.supporting_evidence_ids.filter((id) => externalIds.has(id));
+      const contra = v.contradicting_evidence_ids.filter((id) => externalIds.has(id));
+      let status = v.status;
+      let note = v.note;
+      if (status === "verified" && support.length === 0) {
+        status = "unverified";
+        note = `${note} (downgraded: no valid independent source survived validation)`;
+      } else if (status === "contradicted" && contra.length === 0) {
+        status = "unverified";
+        note = `${note} (downgraded: cited contradicting evidence was invalid)`;
+      }
       const prior: number[] = JSON.parse(claims.find((c) => c.id === v.claim_id)!.evidence_ids_json);
       const merged = [...new Set([...prior, ...support, ...contra])];
-      const trust = mapTrustScore(v.status, support.length, contra.length);
-      update.run(v.status, trust, JSON.stringify(merged), v.note, v.claim_id);
-      if (v.status === "verified") verified++;
-      if (v.status === "contradicted") contradicted++;
+      const trust = mapTrustScore(status, support.length, contra.length);
+      update.run(status, trust, JSON.stringify(merged), note, v.claim_id);
+      if (status === "verified") verified++;
+      if (status === "contradicted") contradicted++;
     }
   });
   tx();

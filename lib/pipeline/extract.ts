@@ -49,6 +49,10 @@ export async function extract(opp: OpportunityRow): Promise<Extraction> {
   );
 
   const tx = db.transaction(() => {
+    // Re-analysis replaces the deck-derived rows instead of appending a second
+    // copy; web/github evidence stays (enrich dedupes it by URL).
+    db.prepare("DELETE FROM claims WHERE opportunity_id=?").run(opp.id);
+    db.prepare("DELETE FROM evidence WHERE opportunity_id=? AND source_type IN ('deck','application')").run(opp.id);
     insertEvidence.run(
       opp.id,
       "application",

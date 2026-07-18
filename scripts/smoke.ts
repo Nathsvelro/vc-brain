@@ -49,12 +49,15 @@ async function main(): Promise<void> {
   if (process.env.TAVILY_API_KEY) {
     try {
       const { tavilySearch } = await import("../lib/tavily");
-      const results = await tavilySearch("OpenAI", 3);
+      // Unique query per run: tavilySearch is cache-first, and a cached hit
+      // would falsely certify a revoked/mistyped key.
+      const query = `AI startup funding news ${new Date().toISOString().slice(0, 16)}`;
+      const results = await tavilySearch(query, 3);
       console.log(
-        `✓ tavilySearch("OpenAI") → ${results.length} result(s)${results[0] ? ` — first: ${results[0].url}` : ""}`,
+        `✓ live tavilySearch → ${results.length} result(s)${results[0] ? ` — first: ${results[0].url}` : ""}`,
       );
     } catch (err) {
-      console.error(`✗ tavilySearch("OpenAI") failed: ${String(err)}`);
+      console.error(`✗ live tavilySearch failed: ${String(err)}`);
       failed++;
     }
   } else {

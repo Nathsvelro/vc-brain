@@ -63,12 +63,17 @@ export async function scoreFounder(
     { model: MODEL_SMART, system: SYSTEM },
   );
 
-  // Deterministic aggregation: weighted sum → 0-100.
+  // Deterministic aggregation: weighted sum → 0-100. The model's array is not
+  // trusted to be exactly the five rubric components: duplicates are dropped
+  // (first occurrence wins) and a missing component falls back to a neutral
+  // 5/10 at low confidence instead of silently contributing 0.
+  const byName = new Map(out.components.map((c) => [c.name, c] as const));
   let score = 0;
   let lowConfidence = 0;
-  for (const c of out.components) {
-    score += (WEIGHTS[c.name] ?? 0) * c.score_0_10 * 10;
-    if (c.confidence === "low") lowConfidence++;
+  for (const [name, weight] of Object.entries(WEIGHTS)) {
+    const c = byName.get(name as (typeof out.components)[number]["name"]);
+    score += weight * (c?.score_0_10 ?? 5) * 10;
+    if ((c?.confidence ?? "low") === "low") lowConfidence++;
   }
   score = Math.round(Math.min(100, Math.max(0, score)));
 

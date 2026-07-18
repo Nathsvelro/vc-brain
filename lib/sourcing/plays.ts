@@ -82,6 +82,11 @@ export async function runPlay(play: { title: string; rationale: string; queries:
 export function simulateApplication(outboundOppId: number): { inboundOppId: number } {
   const opp = getOpportunity(outboundOppId);
   if (!opp || opp.source !== "outbound") throw new Error("not an outbound opportunity");
+  // Both pipelines running at once could each create a founder row before the
+  // other's dedup lookup sees it, splitting the Founder Score history.
+  if (opp.status === "received" || opp.status === "analyzing") {
+    throw new Error("the outbound analysis is still running — wait for it to finish, then simulate the application");
+  }
 
   const deckText = `Inbound application following our outreach.\n${opp.deck_text ?? ""}\n\nAdditional founder note: Thanks for reaching out — applying as suggested. Happy to share more detail on traction and roadmap on a call.`;
   const res = db

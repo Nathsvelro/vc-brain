@@ -15,9 +15,11 @@ export interface FounderLink {
  */
 export async function findOrCreateFounder(extraction: Extraction, opportunityId: number): Promise<FounderLink> {
   const norm = normalizeName(extraction.founder.name);
-  const candidates = db
-    .prepare("SELECT * FROM founders WHERE normalized_name = ? OR normalized_name LIKE ? LIMIT 3")
-    .all(norm, `%${norm.split(" ").pop() ?? norm}%`) as FounderRow[];
+  const candidates = norm
+    ? (db
+        .prepare("SELECT * FROM founders WHERE normalized_name = ? OR normalized_name LIKE ? LIMIT 3")
+        .all(norm, `%${norm.split(" ").pop() ?? norm}%`) as FounderRow[])
+    : [];
 
   for (const cand of candidates) {
     let same = cand.normalized_name === norm;

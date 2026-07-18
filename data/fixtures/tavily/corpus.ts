@@ -74,10 +74,10 @@ Problem
 Students and young renters overpay for household basics because they buy single units at the corner store. Bulk prices exist, but nobody wants 48 rolls of paper towel in a dorm room, and coordinating a group order over group chat dies at the payment step.
 
 Product
-MeshCart is a social commerce app where a dorm floor, a building, or a friend group pools orders into one bulk purchase and splits the savings automatically. Anyone can start a "mesh", share the link, and watch the price tick down as neighbours join. We handle payment splitting, the bulk order itself, and pickup-point coordination.
+MeshCart is an AI-assisted group-buying app where a dorm floor, a building, or a friend group pools orders into one bulk purchase and splits the savings automatically. Anyone can start a "mesh", share the link, and watch the price tick down as neighbours join. A lightweight demand-prediction model decides when a mesh has enough momentum to unlock the next price break and recommends what the group should add to hit bulk thresholds. We handle payment splitting, the bulk order itself, and pickup-point coordination.
 
 Team
-Founder: Priya Sharma (Toronto). Former product manager who taught herself mobile development to ship the first version single-handedly. One part-time contract developer.
+Founder: Priya Sharma (Toronto). Former product manager who taught herself mobile development and applied ML to ship the first version single-handedly. One part-time contract developer.
 
 Traction
 - 2,100-person waitlist across four campuses within six weeks.

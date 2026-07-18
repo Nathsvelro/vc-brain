@@ -15,8 +15,6 @@
  * Requires OPENAI_API_KEY (all LLM stages are live). TAVILY_API_KEY is NOT
  * required: every enrichment query is served from the fixture cache.
  */
-import fs from "node:fs";
-import path from "node:path";
 import { loadEnvLocal, requireOpenAIKey } from "./lib";
 import {
   ALL_TEMPLATES,
@@ -36,20 +34,38 @@ async function main(): Promise<void> {
   loadEnvLocal();
   requireOpenAIKey();
 
-  // 1. Fresh database: delete BEFORE the db singleton is imported/opened.
-  const dbPath = path.join(process.cwd(), "data", "vcbrain.db");
-  for (const p of [dbPath, `${dbPath}-wal`, `${dbPath}-shm`]) {
-    fs.rmSync(p, { force: true });
-  }
-  console.log(`Removed ${dbPath} (+wal/shm) — seeding from scratch.`);
-
-  // 2. Import app modules only now (env loaded, old DB gone, singleton fresh).
+  // 1. Import app modules only now (env loaded → MODEL_* pick up .env.local).
   const { db, json } = await import("../lib/db");
   const { getThesis } = await import("../lib/thesis");
   const { cacheTavilyFixture } = await import("../lib/tavily");
   const { analyzeOpportunity } = await import("../lib/pipeline/run");
   const { callStructured, MODEL_FAST } = await import("../lib/openai");
   const { OutreachSchema } = await import("../lib/schemas");
+
+  // 2. Wipe via DELETE instead of unlinking the file: a running `next dev`
+  //    holds the sqlite file open, and deleting the inode would leave it
+  //    serving stale ghost data. DELETE keeps the inode, so the dev server
+  //    picks up the fresh seed immediately.
+  const wipeTables = [
+    "claims",
+    "evidence",
+    "axis_scores",
+    "reasoning_log",
+    "founder_score_history",
+    "opportunities",
+    "founders",
+    "tavily_cache",
+    "thesis",
+  ];
+  db.transaction(() => {
+    for (const t of wipeTables) db.prepare(`DELETE FROM ${t}`).run();
+  })();
+  try {
+    db.prepare("DELETE FROM sqlite_sequence").run(); // reset AUTOINCREMENT ids (table absent on a brand-new db)
+  } catch {
+    /* fresh database — nothing to reset */
+  }
+  console.log("Wiped all tables in data/vcbrain.db (file kept in place — safe with a running dev server).");
 
   const thesis = getThesis();
   console.log(`Thesis ensured: ${thesis.fund_name}`);
@@ -93,7 +109,12 @@ async function main(): Promise<void> {
     return row.status;
   }
 
-  async function seedAndAnalyze(seed: SeedDefinition, label: string): Promise<number> {
+  async function seedAndAnalyze(
+    seed: SeedDefinition,
+    label: string,
+    opts: { expectAnalyzed?: boolean } = {},
+  ): Promise<number> {
+    const { expectAnalyzed = true } = opts;
     console.log(`\n=== ${label}: ${seed.companyName} — ${seed.founderName} (${seed.sourceType}) ===`);
     const oppId = insertOpportunity(seed);
     console.log(`  inserted opportunity #${oppId}, running pipeline...`);
@@ -103,6 +124,13 @@ async function main(): Promise<void> {
     console.log(`  pipeline finished — status: ${status}`);
     if (status === "error") {
       throw new Error(`pipeline ended in status=error for ${seed.companyName} (see reasoning_log)`);
+    }
+    // Loud failure beats a silently hollow demo: seeds the walkthrough depends
+    // on must reach full analysis, not stop at the quick screen.
+    if (expectAnalyzed && status === "screened_filtered") {
+      throw new Error(
+        `${seed.companyName} was filtered at the quick screen but the demo needs it fully analyzed — adjust its deck or the thesis and re-seed`,
+      );
     }
     return oppId;
   }
@@ -148,7 +176,10 @@ async function main(): Promise<void> {
   for (const name of firstWave) {
     const seed = bySeedName(name);
     try {
-      const oppId = await seedAndAnalyze(seed, `Seed ${n}/8`);
+      // TerraBloom is the off-thesis demo: being filtered IS its success case.
+      const oppId = await seedAndAnalyze(seed, `Seed ${n}/8`, {
+        expectAnalyzed: name !== "TerraBloom Biotech",
+      });
       if (name === "QuantumLeap Analytics") {
         console.log("  re-running analysis for a second axis snapshot (trend-over-time demo)...");
         await analyzeOpportunity(oppId);
