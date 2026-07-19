@@ -32,6 +32,12 @@ npm run dev                  # open http://localhost:3000
 
 The seed corpus is fully fictional and marked "demo corpus" in the UI; contradictions are seeded on purpose to demonstrate the trust layer (the brief explicitly invites synthetic data with seeded contradictions).
 
+## Deploy (public demo)
+
+The repo ships with `data/demo-seed.db` — a pre-analyzed snapshot of the demo corpus. On boot, if no database exists, the app copies the snapshot into place, so a fresh deploy comes up fully populated with zero LLM calls. On hosts with ephemeral disks a restart simply resets the demo to this pristine state.
+
+**Render** (zero config): this repo includes a `render.yaml` blueprint. In Render: *New → Blueprint → connect this repo*, set `OPENAI_API_KEY` and `TAVILY_API_KEY` when prompted, deploy. Any host that runs a persistent Node server (Railway, Fly.io) works the same way — build with `npm run build`, start with `npm start`. Vercel is not supported: the app needs a real filesystem for SQLite and long-lived background analysis.
+
 ## Demo walkthrough (2:30)
 
 1. **Thesis** (`/thesis`) — everything downstream filters through this.

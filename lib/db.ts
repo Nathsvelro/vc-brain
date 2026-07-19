@@ -9,8 +9,15 @@ declare global {
   var __vcbrainDb: Database.Database | undefined;
 }
 
+const DEMO_SEED_PATH = path.join(process.cwd(), "data", "demo-seed.db");
+
 function open(): Database.Database {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+  // Fresh deploys (and container restarts on ephemeral hosts) boot straight
+  // into the committed demo corpus instead of an empty database.
+  if (!fs.existsSync(DB_PATH) && fs.existsSync(DEMO_SEED_PATH)) {
+    fs.copyFileSync(DEMO_SEED_PATH, DB_PATH);
+  }
   const db = new Database(DB_PATH);
   db.pragma("busy_timeout = 5000");
   db.pragma("journal_mode = WAL");

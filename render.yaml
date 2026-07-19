@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: vc-brain
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: MODEL_SMART
+        value: gpt-5
+      - key: MODEL_FAST
+        value: gpt-5-mini
