@@ -1,5 +1,7 @@
 # The VC Brain — $100K Checks in 24 Hours
 
+**🔴 Live demo: [vc-brain-opbu.onrender.com](https://vc-brain-opbu.onrender.com/)** — fully populated with the demo corpus; free-tier host, so the first request after idle takes ~30s to wake.
+
 Hack-Nation 6th Global AI Hackathon · Challenge 02 (Maschmeyer Group)
 
 An AI-native venture fund operating system covering **Sourcing → Screening → Diligence → Decision**. Founders apply with just a deck and a company name — or get discovered before they ever apply — and the system produces an evidence-cited investment memo a human investor can act on within 24 hours.
