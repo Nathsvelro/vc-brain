@@ -517,7 +517,7 @@ Problem
 Everyone photographs everything and revisits almost nothing. The average phone holds thousands of photos that are never opened again; anniversaries and childhoods scroll past unmarked. The emotional value of a camera roll rounds to zero because turning it into something you would actually hold requires hours of work nobody does.
 
 Product
-Mosaic Memory turns a camera roll and voice notes into narrated keepsake books. Point it at a date range or a person; it clusters the moments, asks you three questions in your own voice-note style, and produces a printed or digital book with narration woven through the pages. Privacy-first: media processing happens on-device wherever possible, and nothing is used for training.
+Mosaic Memory is an applied-AI product that turns a camera roll and voice notes into narrated keepsake books. A multimodal pipeline clusters the moments (on-device vision embeddings), asks you three questions in your own voice-note style, and generates a printed or digital book with AI-woven narration through the pages. The hard technology is the media-understanding pipeline — the same class of infrastructure Sofia built for nine years. Privacy-first: media processing happens on-device wherever possible, and nothing is used for training.
 
 Team
 Founder and CEO: Sofia Ortiz (Mexico City). Nine years at Brightloop, leaving as a staff engineer running the media-pipeline team of 14. Previously founded PixelFern, a photo-editing SDK acquired by Brightloop in 2023. Founding designer joined from Brightloop's creative-tools group.
@@ -529,7 +529,7 @@ Traction
 - Waitlist of 11,000 from a single viral post.
 
 Market
-Memory-keeping is an ancient spend category — scrapbooking, photo books, framing — being remade by AI. We start with new parents, the segment with the highest photo volume and the strongest gifting motion, then expand to milestones and memorials.
+Memory-keeping is an ancient spend category — scrapbooking, photo books, framing — being remade by applied AI. We start with new parents, the segment with the highest photo volume and the strongest gifting motion, then expand to milestones and memorials.
 
 Ask
 Pre-seed to grow the founding team to four and launch publicly in North America and Mexico.`,

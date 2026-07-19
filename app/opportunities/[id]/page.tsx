@@ -385,7 +385,9 @@ export default function OpportunityDetail() {
             <span className="text-sm">
               <span className="text-muted">Check size </span>
               <span className="font-semibold">
-                {rec.check_size_usd != null ? `$${Math.round(rec.check_size_usd).toLocaleString("en-US")}` : "—"}
+                {rec.check_size_usd && rec.verdict !== "pass"
+                  ? `$${Math.round(rec.check_size_usd).toLocaleString("en-US")}`
+                  : "—"}
               </span>
             </span>
             <span className="text-sm">

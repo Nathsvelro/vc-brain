@@ -15,7 +15,7 @@ export const DEFAULT_THESIS: ThesisConfig = {
   fund_name: "Maschmeyer Group — AI Fund I",
   sectors: ["AI infrastructure", "developer tools", "applied AI / vertical SaaS"],
   stages: ["pre-seed", "seed"],
-  geographies: ["Europe", "North America"],
+  geographies: ["Europe", "North America", "Latin America"],
   check_size_usd: { min: 100_000, max: 100_000 },
   ownership_target_pct: 6,
   risk_appetite: "aggressive",
